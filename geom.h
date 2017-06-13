@@ -971,7 +971,7 @@ struct rt_anno_internal
 #define RT_ANNO_POS_BOTTOM 4
 #define RT_ANNO_POS_MIDDLE 5
 #define RT_ANNO_POS_TOP 6
-#define RT_ANNO_POS_BOTTOM_LEFT 7    
+#define RT_ANNO_POS_BOTTOM_LEFT 7
 #define RT_ANNO_POS_BOTTOM_CENTER 8
 #define RT_ANNO_POS_BOTTOM_RIGHT 9
 #define RT_ANNO_POS_MIDDLE_LEFT 10

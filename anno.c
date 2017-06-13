@@ -100,8 +100,9 @@ rt_check_pos(const struct txt_seg *tsg, char *rel_pos)
 	return 0;
 }
 
+
 int
-rt_check_ant(const struct rt_ant *ant, const struct rt_anno_internal *annotation_ip, int noisy)
+rt_check_ant(const struct rt_ant *ant, const struct rt_anno_internal *anno_ip, int noisy)
 {
     size_t i, j;
     int ret=0;
@@ -121,25 +122,25 @@ rt_check_ant(const struct rt_ant *ant, const struct rt_anno_internal *annotation
 	const struct txt_seg *tsg;
 	const uint32_t *lng;
 
-	lng = (uint32_t *)ant->segment[i];
+	lng = (uint32_t *)ant->segments[i];
 
 	switch (*lng) {
 	    case CURVE_LSEG_MAGIC:
 		lsg = (struct line_seg *)lng;
-		if ((size_t)lsg->start >= annotation_ip->vert_count ||
-		    (size_t)lsg->end >= annotation_ip->vert_count)
+		if ((size_t)lsg->start >= anno_ip->vert_count ||
+		    (size_t)lsg->end >= anno_ip->vert_count)
 		    ret++;
 		break;
 	    case CURVE_CARC_MAGIC:
 		csg = (struct carc_seg *)lng;
-		if ((size_t)csg->start >= annotation_ip->vert_count ||
-		    (size_t)csg->end >= annotation_ip->vert_count)
+		if ((size_t)csg->start >= anno_ip->vert_count ||
+		    (size_t)csg->end >= anno_ip->vert_count)
 		    ret++;
 		break;
 	    case CURVE_NURB_MAGIC:
 		nsg = (struct nurb_seg *)lng;
 		for (j=0; j<(size_t)nsg->c_size; j++) {
-		    if ((size_t)nsg->ctl_points[j] >= annotation_ip->vert_count) {
+		    if ((size_t)nsg->ctl_points[j] >= anno_ip->vert_count) {
 			ret++;
 			break;
 		    }
@@ -148,7 +149,7 @@ rt_check_ant(const struct rt_ant *ant, const struct rt_anno_internal *annotation
 	    case CURVE_BEZIER_MAGIC:
 		bsg = (struct bezier_seg *)lng;
 		for (j=0; j<=(size_t)bsg->degree; j++) {
-		    if ((size_t)bsg->ctl_points[j] >= annotation_ip->vert_count) {
+		    if ((size_t)bsg->ctl_points[j] >= anno_ip->vert_count) {
 			ret++;
 			break;
 		    }
@@ -156,7 +157,7 @@ rt_check_ant(const struct rt_ant *ant, const struct rt_anno_internal *annotation
 		break;
 	    case ANN_TSEG_MAGIC:
 		tsg = (struct txt_seg *)lng;
-		if((size_t)tsg->ref_pt >= annotation_ip->vert_count)
+		if((size_t)tsg->ref_pt >= anno_ip->vert_count)
 		ret++;
 		if((size_t)tsg->pt_rel_pos > 15 || (size_t)tsg->pt_rel_pos < 1)
 		ret++;
@@ -285,7 +286,7 @@ rt_anno_free(struct soltab *stp)
 
 //SEGMENT TO VLIST
 int 
-segment_to_vlist(struct bu_list *vhead, const struct rt_tess_tol *ttol, fastf_t *V, struct rt_anno_internal *annotation_ip, void *seg)
+segment_to_vlist(struct bu_list *vhead, const struct rt_tess_tol *ttol, fastf_t *V, struct rt_anno_internal *anno_ip, void *seg)
 {
 	//TODO
 }
@@ -888,7 +889,7 @@ rt_anno_import5(struct rt_db_internal *ip, const struct bu_external *ep, const f
 		bu_cv_ntohd((unsigned char *)&scan, ptr, 1);
 		csg->radius = scan; /* double to fastf_t */
 		ptr += SIZEOF_NETWORK_DOUBLE;
-		anno_ip->curve.segments[seg_no] = (void *)csg;
+		anno_ip->ant.segments[seg_no] = (void *)csg;
 		break;
 	    case CURVE_NURB_MAGIC:
 		BU_ALLOC(nsg, struct nurb_seg);
@@ -1716,7 +1717,7 @@ rt_anno_get(struct bu_vls *logstr, const struct rt_db_internal *intern, const ch
 	    bu_vls_printf(logstr, " {%.25g %.25g}", V2ARGS(ann->verts[i]));
     } else if (BU_STR_EQUAL(attr, "SL")) {
 	ant = &ann->ant;
-	if (curve_to_tcl_list(logstr, ant)) {
+	if (ant_to_tcl_list(logstr, ant)) {
 	    return BRLCAD_ERROR;
 	}
     } else if (*attr == 'V') {
