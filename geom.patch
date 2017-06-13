@@ -1,0 +1,112 @@
+Index: geom.h
+===================================================================
+--- geom.h	(revision 69907)
++++ geom.h	(working copy)
+@@ -25,7 +25,7 @@
+  * These structures are what the struct rt_db_internal generic pointer
+  * idb_ptr points at, based on idb_type indicating a solid id ID_xxx,
+  * such as ID_TGC.
+-*
++ *
+  */
+ /** @{ */
+ /** @file rt/geom.h */
+@@ -569,7 +569,7 @@
+     mat_t dsp_mtos;		/**< @brief model to solid space */
+     /* END OF USER SETTABLE VARIABLES, BEGIN INTERNAL STUFF */
+     mat_t dsp_stom;		/**< @brief solid to model space
+-			 * computed from dsp_mtos */
++				 * computed from dsp_mtos */
+     unsigned short *dsp_buf;	/**< @brief actual data */
+     struct bu_mapped_file *dsp_mp;	/**< @brief mapped file for data */
+     struct rt_db_internal *dsp_bip;	/**< @brief db object for data */
+@@ -601,7 +601,7 @@
+ 
+ 
+ /**
+- * used by the sketch and solid of extrusion
++ * used by the sketch, solid of extrusion and the annotation primitive
+  */
+ struct line_seg		/**< @brief line segment */
+ {
+@@ -923,33 +923,66 @@
+ #define RT_PNTS_CK_MAGIC(_p) BU_CKMAG(_p, RT_PNTS_INTERNAL_MAGIC, "rt_pnts_internal")
+ /** @} */
+ 
+-/** @addtogroup rt_annotation */
++/** @addtogroup rt_anno */
+ /** @{ */
+ /*
+- * ID_ANNOTATION
++ * ID_ANNO
+  *
+- * Annotations are used to provide labels in-scene when viewing geometry.  Leaders connect labels
++ * Annotations are used to provide labels in-scene when viewing geometry. Leaders connect labels
+  * to geometry objects or fixed points in space.
+  *
++ * container for the annotation primitive
+  */
+ 
+-struct rt_annotation_internal
++struct rt_ant {
++    size_t count;			/**< @brief number of segments in the annotation */
++    int *reverse;			/**< array of boolean flags indicating if the
++					 * segment should be reversed*/
++    void **segments;			/**< @brief array of annotation segment pointer */
++};
++
++/**
++ * used by the annotation primitive
++ */
++
++struct txt_seg {
++    uint32_t magic;
++    int ref_pt;				/** reference point */
++    int pt_rel_pos;			/** flag describing the position relative to the ref_point */
++    struct bu_vls label;
++};
++
++struct rt_anno_internal
+ {
+     uint32_t magic;
+-    point_t V;				/**< @brief vertex, start and end point of loop to be extruded */
+-    vect_t h;				/**< @brief extrusion vector, may not be in (u_vec X v_vec) plane */
+-    vect_t u_vec;			/**< @brief vector in U parameter direction */
+-    vect_t v_vec;			/**< @brief vector in V parameter direction */
+-    int view_aligned;
+-    struct bu_vls label;		/**< @brief either user supplied labels, format strings, or empty */
+-    struct rt_sketch_internal *skt;	/**< @brief pointer to sketch holding label decoration (if any) - same plane as text plane */
++    point_t V;				/**< @brief vertex, maps to the origin in the 2D system */
++    size_t vert_count;			/**< @brief number of vertices */
++    point2d_t *verts;			/**< @brief array of vertices that serve as control points */
++    struct rt_ant ant;			/**< @brief segments in the annotation */
+ };
+ 
+ /**
+- * Note that the u_vec and v_vec are not unit vectors, their magnitude
+- * and direction are used for scaling and rotation.
++ * placement flags
+  */
+-#define RT_ANNOTATION_CK_MAGIC(_p) BU_CKMAG(_p, RT_ANNOTATION_INTERNAL_MAGIC, "rt_annotation_internal")
++
++#define RT_ANNO_POS_LEFT 1
++#define RT_ANNO_POS_CENTER 2
++#define RT_ANNO_POS_RIGHT 3
++#define RT_ANNO_POS_BOTTOM 4
++#define RT_ANNO_POS_MIDDLE 5
++#define RT_ANNO_POS_TOP 6
++#define RT_ANNO_POS_BOTTOM_LEFT 7    
++#define RT_ANNO_POS_BOTTOM_CENTER 8
++#define RT_ANNO_POS_BOTTOM_RIGHT 9
++#define RT_ANNO_POS_MIDDLE_LEFT 10
++#define RT_ANNO_POS_MIDDLE_CENTER 11
++#define RT_ANNO_POS_MIDDLE_RIGHT 12
++#define RT_ANNO_POS_TOP_LEFT 13
++#define RT_ANNO_POS_TOP_CENTER 14
++#define RT_ANNO_POS_TOP_RIGHT 15
++
++
++#define RT_ANNO_CK_MAGIC(_p) BU_CKMAG(_p, RT_ANNO_INTERNAL_MAGIC, "rt_anno_internal")
+ /** @} */
+ 
+ /*

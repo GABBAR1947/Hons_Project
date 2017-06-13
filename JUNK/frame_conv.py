@@ -5,7 +5,7 @@
 
 import cv2
 import numpy as np
-cap = cv2.VideoCapture('./comic2.mp4')
+cap = cv2.VideoCapture('.input/comic2.mp4')
 success,image = cap.read();
 
 count = 0
